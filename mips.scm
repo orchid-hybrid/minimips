@@ -62,7 +62,8 @@
                          ,i9 ,i10 ,i11 ,i12 ,i13 ,i14 ,i15 ,i16)))))
 
 (define (jump-encoding inst word)
-  ;; This encoding is used for jump instructions, which require a 26-bit immediate offset. It is also used for the trap instruction.
+  ;; This encoding is used for jump instructions, which require a 26-bit immediate offset.
+  ;; It is also used for the trap instruction.
   ;; ooooooii iiiiiiii iiiiiiii iiiiiiii
   (fresh (e s o $d $s $t a i label)
     (fresh (o1 o2 o3 o4 o5 o6
