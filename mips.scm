@@ -18,7 +18,7 @@
   ;; These instructions receive all their operands in registers.
   ;; Additionally, certain of the bit shift instructions use this encoding; their operands are two registers and a 5-bit shift amount.
   ;; ooooooss sssttttt dddddaaa aaffffff
-  (fresh (e s o $d $s $t a i label)
+  (fresh (s o $d $s $t a i label)
     (fresh (o1 o2 o3 o4 o5 o6
                s1 s2 s3 s4 s5
                t1 t2 t3 t4 t5
@@ -29,7 +29,7 @@
                  (,s3 ,s4 ,s5 ,t1 ,t2 ,t3 ,t4 ,t5)
                  (,d1 ,d2 ,d3 ,d4 ,d5 ,a1 ,a2 ,a3)
                  (,a4 ,a5 ,f1 ,f2 ,f3 ,f4 ,f5 ,f6)))
-      (instruction-syntax e s inst
+      (instruction-syntax 'register s inst
                           o $d $s $t a i label)
       (== '(0 0 0 0 0 0) `(,o1 ,o2 ,o3 ,o4 ,o5 ,o6))
       (register $s `(,s1 ,s2 ,s3 ,s4 ,s5))
@@ -43,7 +43,7 @@
   ;; These instructions typically receive one operand in a register, another as an immediate value coded into the instruction itself, and place their results in a register.
   ;; This encoding is also used for load, store, branch, and other instructions so the use of the fields is different in some cases.
   ;; ooooooss sssttttt iiiiiiii iiiiiiii
-  (fresh (e s o $d $s $t a i label)
+  (fresh (s o $d $s $t a i label)
     (fresh (o1 o2 o3 o4 o5 o6
                s1 s2 s3 s4 s5
                t1 t2 t3 t4 t5
@@ -53,7 +53,7 @@
                  (,s3  ,s4  ,s5  ,t1  ,t2  ,t3  ,t4  ,t5)
                  (,i1  ,i2  ,i3  ,i4  ,i5  ,i6  ,i7  ,i8)
                  (,i9  ,i10 ,i11 ,i12 ,i13 ,i14 ,i15 ,i16)))
-      (instruction-syntax e s inst
+      (instruction-syntax 'immediate s inst
                           o $d $s $t a i label)
       (instruction/opcode-function/syntax o `(,o1 ,o2 ,o3 ,o4 ,o5 ,o6) s)
       (register $s `(,s1 ,s2 ,s3 ,s4 ,s5))
@@ -65,7 +65,7 @@
   ;; This encoding is used for jump instructions, which require a 26-bit immediate offset.
   ;; It is also used for the trap instruction.
   ;; ooooooii iiiiiiii iiiiiiii iiiiiiii
-  (fresh (e s o $d $s $t a i label)
+  (fresh (s o $d $s $t a i label)
     (fresh (o1 o2 o3 o4 o5 o6
                i1 i2 i3 i4 i5 i6 i7 i8
                i9 i10 i11 i12 i13 i14 i15 i16
@@ -75,7 +75,7 @@
                  (,i3  ,i4  ,i5  ,i6  ,i7  ,i8  ,i9  ,i10)
                  (,i11 ,i12 ,i13 ,i14 ,i15 ,i16 ,i17 ,i18)
                  (,i19 ,i20 ,i21 ,i22 ,i23 ,i24 ,i25 ,i26)))
-      (instruction-syntax e s inst
+      (instruction-syntax 'jump s inst
                           o $d $s $t a i label)
       (instruction/opcode-function/syntax o `(,o1 ,o2 ,o3 ,o4 ,o5 ,o6) s)
       (immediate i `(,i1 ,i2 ,i3 ,i4 ,i5 ,i6 ,i7 ,i8
