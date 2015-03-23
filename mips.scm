@@ -1,9 +1,12 @@
+(import (miruKanren))
+
 ;; This file is a minikanren version of
 ;; https://www.student.cs.uwaterloo.ca/~isg/res/mips/opcodes
 
-(define (register r-name r-binary) ...)
-(define (shift a-numeral a-binary) ...)
-(define (immediate i-number i-binary) ...) ;; We actually need multiple versions of this
+(define (register r-name r-binary) (binaryo 5 r-name r-binary))
+(define (shift a-numeral a-binary) (binaryo 5 a-numeral a-binary))
+(define (immediate/16 i-number i-binary) (binaryo 16 i-number i-binary))
+(define (immediate/26 i-number i-binary) (binaryo 26 i-number i-binary))
 
 (define (instruction inst word)
   ;; Each MIPS instruction is encoded in exactly one word (32 bits).
@@ -11,7 +14,7 @@
   (conde
    ((register-encoding inst word))
    ((immediate-encoding inst word))
-   ((jump-encoding inst-word))))
+   ((jump-encoding inst word))))
 
 (define (register-encoding inst word)
   ;; This encoding is used for instructions which do not require any immediate data.
@@ -29,6 +32,7 @@
                  (,s3 ,s4 ,s5 ,t1 ,t2 ,t3 ,t4 ,t5)
                  (,d1 ,d2 ,d3 ,d4 ,d5 ,a1 ,a2 ,a3)
                  (,a4 ,a5 ,f1 ,f2 ,f3 ,f4 ,f5 ,f6)))
+      ;;(binaryo 32 inst word)
       (instruction-syntax 'register s inst
                           o $d $s $t a i label)
       (== '(0 0 0 0 0 0) `(,o1 ,o2 ,o3 ,o4 ,o5 ,o6))
@@ -36,7 +40,7 @@
       (register $t `(,t1 ,t2 ,t3 ,t4 ,t5))
       (register $d `(,d1 ,d2 ,d3 ,d4 ,d5))
       (shift a `(,a1 ,a2 ,a3 ,a4 ,a5))
-      (instruction/opcode-function/syntax f `(,f1 ,f2 ,f3 ,f4 ,f5 ,f6) s))))
+      (instruction/opcode-function/syntax o `(,f1 ,f2 ,f3 ,f4 ,f5 ,f6) s))))
 
 (define (immediate-encoding inst word)
   ;; This encoding is used for instructions which require a 16-bit immediate operand.
@@ -53,13 +57,14 @@
                  (,s3  ,s4  ,s5  ,t1  ,t2  ,t3  ,t4  ,t5)
                  (,i1  ,i2  ,i3  ,i4  ,i5  ,i6  ,i7  ,i8)
                  (,i9  ,i10 ,i11 ,i12 ,i13 ,i14 ,i15 ,i16)))
+      ;;(binaryo 32 inst word)
       (instruction-syntax 'immediate s inst
                           o $d $s $t a i label)
       (instruction/opcode-function/syntax o `(,o1 ,o2 ,o3 ,o4 ,o5 ,o6) s)
       (register $s `(,s1 ,s2 ,s3 ,s4 ,s5))
       (register $t `(,t1 ,t2 ,t3 ,t4 ,t5))
-      (immediate i `(,i1 ,i2 ,i3 ,i4 ,i5 ,i6 ,i7 ,i8
-                         ,i9 ,i10 ,i11 ,i12 ,i13 ,i14 ,i15 ,i16)))))
+      (immediate/16 i `(,i1 ,i2 ,i3 ,i4 ,i5 ,i6 ,i7 ,i8
+                            ,i9 ,i10 ,i11 ,i12 ,i13 ,i14 ,i15 ,i16)))))
 
 (define (jump-encoding inst word)
   ;; This encoding is used for jump instructions, which require a 26-bit immediate offset.
@@ -75,13 +80,14 @@
                  (,i3  ,i4  ,i5  ,i6  ,i7  ,i8  ,i9  ,i10)
                  (,i11 ,i12 ,i13 ,i14 ,i15 ,i16 ,i17 ,i18)
                  (,i19 ,i20 ,i21 ,i22 ,i23 ,i24 ,i25 ,i26)))
+      ;;(binaryo 32 inst word)
       (instruction-syntax 'jump s inst
                           o $d $s $t a i label)
       (instruction/opcode-function/syntax o `(,o1 ,o2 ,o3 ,o4 ,o5 ,o6) s)
-      (immediate i `(,i1 ,i2 ,i3 ,i4 ,i5 ,i6 ,i7 ,i8
-                        ,i9 ,i10 ,i11 ,i12 ,i13 ,i14 ,i15 ,i16
-                        ,i17 ,i18 ,i19 ,i20 ,i21 ,i22 ,i23 ,i24
-                        ,i25 ,i26)))))
+      (immediate/26 i `(,i1 ,i2 ,i3 ,i4 ,i5 ,i6 ,i7 ,i8
+                            ,i9 ,i10 ,i11 ,i12 ,i13 ,i14 ,i15 ,i16
+                            ,i17 ,i18 ,i19 ,i20 ,i21 ,i22 ,i23 ,i24
+                            ,i25 ,i26)))))
   
 (define (instruction-syntax e s t
                             o $d $s $t a i label)
@@ -164,3 +170,45 @@
    ((== o 'mthi)  (== f '(0 1 0 0 0 1)) (== s 'move-to))
    ((== o 'mtlo)  (== f '(0 1 0 0 1 1)) (== s 'move-to))
    ((== o 'trap)  (== f '(0 1 1 0 1 0)) (== s 'trap))))
+
+
+
+
+
+;; $ rlwrap larceny -r7rs -path .
+;; Larceny v0.98 "General Ripper" (Mar 12 2015 23:11:16, precise:Linux:unified)
+;; larceny.heap, built on Thu Mar 12 23:12:39 GMT 2015
+
+;; > (include "minimips/mips.scm")
+;; Reading minimips/mips.scm
+;; Reading sorted-int-set.scm
+;; Reading miruKanren.scm
+;; instruction/opcode-function/syntax
+
+;; > (runi (lambda (q) (fresh (x y) (== q (list x y)) (instruction x y))))
+
+;; (((add _.0 _.1 _.2) ((0 0 0 0 0 0 _.3 _.4) (_.5 _.6 _.7 _.8 _.9 _.10 _.11 _.12) (_.13 _.14 _.15 _.16 _.17 _.18 _.19 _.20) (_.21 _.22 1 0 0 0 0 0))) (and unknown unknown unknown unknown unknown unknown unknown unknown))
+;; another (y/n)?
+;; y
+
+;; (((addu _.0 _.1 _.2) ((0 0 0 0 0 0 _.3 _.4) (_.5 _.6 _.7 _.8 _.9 _.10 _.11 _.12) (_.13 _.14 _.15 _.16 _.17 _.18 _.19 _.20) (_.21 _.22 1 0 0 0 0 1))) (and unknown unknown unknown unknown unknown unknown unknown unknown))
+;; another (y/n)?
+;; y
+
+;; (((nor _.0 _.1 _.2) ((0 0 0 0 0 0 _.3 _.4) (_.5 _.6 _.7 _.8 _.9 _.10 _.11 _.12) (_.13 _.14 _.15 _.16 _.17 _.18 _.19 _.20) (_.21 _.22 1 0 0 1 1 1))) (and unknown unknown unknown unknown unknown unknown unknown unknown))
+;; another (y/n)?
+;; y
+
+;; (((or _.0 _.1 _.2) ((0 0 0 0 0 0 _.3 _.4) (_.5 _.6 _.7 _.8 _.9 _.10 _.11 _.12) (_.13 _.14 _.15 _.16 _.17 _.18 _.19 _.20) (_.21 _.22 1 0 0 1 0 1))) (and unknown unknown unknown unknown unknown unknown unknown unknown))
+;; another (y/n)?
+;; y
+
+
+
+;; > (runi (lambda (q) (fresh (x y) (instruction '(or 3 5 7) q))))
+
+;; (((0 0 0 0 0 0 0 0) (1 0 1 0 0 1 1 1) (0 0 0 1 1 _.0 _.1 _.2) (_.3 _.4 1 0 0 1 0 1)) (and unknown unknown))
+;; another (y/n)?
+;; y
+
+;; thats-all!
