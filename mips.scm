@@ -1,4 +1,10 @@
-(import (miruKanren))
+;(import (miruKanren))
+(import (scheme base)
+        (test-check)
+
+        (miruKanren mk-watch))
+
+(include "prelude.scm")
 
 ;; This file is a minikanren version of
 ;; https://www.student.cs.uwaterloo.ca/~isg/res/mips/opcodes
@@ -105,7 +111,7 @@
      ((== s 'move-to)     (== t `(,o ,$s)))))
    ((== e 'immediate)
     (conde
-     ((== s 'arith-log-i) (== t `(,o ,$t ,$s i)))
+     ((== s 'arith-log-i) (== t `(,o ,$t ,$s ,i)))
      ((== s 'load-i)      (== t `(,o ,$t ,i)))
      ((== s 'branch)      (== t `(,o ,$s ,$t ,label)))
      ((== s 'branch-z)    (== t `(,o ,$s ,label)))
@@ -212,3 +218,62 @@
 ;; y
 
 ;; thats-all!
+
+
+
+
+
+
+
+
+
+
+
+
+(define (inst/binary inst bin)
+  ;; 23bdfff8
+  (define (eighto w)
+    (fresh (a b c d e f g h)
+      (== w `(,a ,b ,c ,d ,e ,f ,g ,h))))
+  (fresh (word a b c d cd bcd abcd)
+    (== word `(,a ,b ,c ,d))
+    (eighto a)
+    (eighto b)
+    (eighto c)
+    (eighto d)
+    (appendo c d cd)
+    (appendo b cd bcd)
+    (appendo a bcd abcd)
+    (binaryo 32 bin abcd)
+    (instruction inst word)
+    ))
+
+(define (assemble/disassemble program binary)
+  (mapo inst/binary program binary))
+
+(define ackermann '(#x23bdfff8 #xafb00004 #xafbf0000 #x14800002 #x20a20001 #x08100012 #x14a00004 #x2084ffff #x20050001 #x0c100000 #x08100012 #x00808020 #x20a5ffff #x0c100000 #x2204ffff #x00402820 #x0c100000 #x08100012 #x8fb00004 #x8fbf0000 #x23bd0008 #x03e00008))
+
+;; > (run* (lambda (q) (assemble/disassemble q ackermann)))
+;; ((((addi 29 29 65528)
+;;    (sw 16 4 (29))
+;;    (sw 31 0 (29))
+;;    (bne 4 0 _.0)
+;;    (addi 2 5 1)
+;;    (j _.1)
+;;    (bne 5 0 _.2)
+;;    (addi 4 4 65535)
+;;    (addi 5 0 1)
+;;    (jal _.3)
+;;    (j _.4)
+;;    (add 16 4 0)
+;;    (addi 5 5 65535)
+;;    (jal _.5)
+;;    (addi 4 16 65535)
+;;    (add 5 2 0)
+;;    (jal _.6)
+;;    (j _.7)
+;;    (lw 16 4 (29))
+;;    (lw 31 0 (29))
+;;    (addi 29 29 8)
+;;    (jr 31))
+;;   where))
