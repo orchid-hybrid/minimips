@@ -235,6 +235,13 @@
   (define (eighto w)
     (fresh (a b c d e f g h)
       (== w `(,a ,b ,c ,d ,e ,f ,g ,h))))
+  (define (bito b)
+    (conde ((== b 0)) ((== b 1))))
+  (define (really-binaryo w)
+    (fresh (a b c d e f g h)
+      (== w `(,a ,b ,c ,d ,e ,f ,g ,h))
+      (bito a) (bito b) (bito c) (bito d)
+      (bito e) (bito f) (bito g) (bito h)))
   (fresh (word a b c d cd bcd abcd)
     (== word `(,a ,b ,c ,d))
     (eighto a)
@@ -246,6 +253,10 @@
     (appendo a bcd abcd)
     (binaryo 32 bin abcd)
     (instruction inst word)
+    (really-binaryo a)
+    (really-binaryo b)
+    (really-binaryo c)
+    (really-binaryo d)
     ))
 
 (define (assemble/disassemble program binary)
@@ -277,3 +288,33 @@
 ;;    (addi 29 29 8)
 ;;    (jr 31))
 ;;   where))
+
+
+
+
+
+;; > (runi (lambda (q) (assemble/disassemble '((addi 15 15 8)) q)))
+;; ((569311240) where)
+;; (another? y/n)
+;; y
+;; thats-all!
+
+;; > (runi (lambda (q) (assemble/disassemble '((add 15 15 8)) q)))
+;; ((32012320) where)
+;; (another? y/n)
+;; y
+;; ((32012384) where)
+;; (another? y/n)
+;; y
+;; ((32012448) where)
+;; (another? y/n)
+;; y
+;; ((32012512) where)
+;; (another? y/n)
+;; y
+;; ((32012576) where)
+;; (another? y/n)
+;; n
+;; bye!
+
+
